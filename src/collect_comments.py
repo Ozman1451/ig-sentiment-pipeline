@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+import json, pathlib, os
+
 import json, pathlib
 from apify_client import ApifyClient
 from decimal import Decimal
@@ -10,11 +13,16 @@ URLS = [l.strip() for l in (ROOT / "data/raw/selected_posts.txt").read_text().sp
 
 print(f"Loaded {len(URLS)} target post URLs for comment scraping.")
 
+
+max_comments = int(os.environ.get("MAX_COMMENTS", 50))
+
 c = ApifyClient(TOKEN)
 run = c.actor("apify/instagram-comment-scraper").call(
-    run_input={"directUrls": URLS, "resultsLimit": 50},
+    run_input={"directUrls": URLS, "resultsLimit": max_comments},
     max_total_charge_usd=Decimal("3.40")
 )
+
+
 items = list(c.dataset(run.default_dataset_id).iterate_items())
 out = ROOT / f"data/raw/comments_{int(time())}.json"
 out.write_text(json.dumps(items))

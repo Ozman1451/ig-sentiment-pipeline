@@ -1,31 +1,31 @@
 # Gen Z QSR Sentiment Report
 
-**Total Valid Comments:** 258
+**Total Valid Comments:** 267
 
 ## 1. Sentiment Breakdown
-- Neutral: 136 (52.7%)
-- Positive: 73 (28.3%)
-- Negative: 48 (18.6%)
+- Neutral: 139 (52.1%)
+- Positive: 76 (28.5%)
+- Negative: 51 (19.1%)
 - Mixed: 1 (0.4%)
 
 ## 2. Top Aspects Discussed
-- none: 163
+- none: 169
 - taste_quality: 55
-- price_value: 16
-- menu_hype: 13
+- price_value: 17
+- menu_hype: 15
 - service_speed: 12
 - ambiance_vibe: 4
 
 ## 3. Dominant Emotions
-- Neutral: 125
-- Hyped: 58
-- Disappointed: 33
-- Craving: 22
-- Angry: 17
+- Neutral: 128
+- Hyped: 60
+- Disappointed: 34
+- Craving: 23
+- Angry: 19
 
 ## 4. Top Intents
-- Other: 92
-- Inquiry: 67
-- Recommendation: 47
-- Complaint: 40
-- Ordering_Now: 9
+- Other: 94
+- Inquiry: 70
+- Recommendation: 48
+- Complaint: 42
+- Ordering_Now: 10
