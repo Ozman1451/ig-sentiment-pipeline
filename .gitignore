@@ -1,0 +1,21 @@
+# Environments
+.venv/
+__pycache__/
+*.pyc
+
+# Raw & Intermediate Data (Heavy/Sensitive)
+data/raw/
+data/clean/
+data/tagged/
+data/archive*/
+*.parquet
+
+# Logs & PIDs
+logs/
+run/
+*.log
+*.pid
+
+# Auth / Secrets (Just in case)
+*.token
+.env

@@ -1,0 +1,9 @@
+{
+  "rows_in": 320,
+  "rows_out": 310,
+  "flag_counts": {
+    "": 251,
+    "emoji_only": 51,
+    "spam": 8
+  }
+}
