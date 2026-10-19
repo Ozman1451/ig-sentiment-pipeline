@@ -44,3 +44,11 @@ The pipeline is entirely self-contained and modular, designed to run inference l
 *   **Roman Urdu & Slang Comprehension:** Custom system prompts allow the model to accurately classify hyper-local internet slang (e.g., "mid", "scene on hai", "W").
 *   **Garbage Filtering:** Regex-based sanitization ensures the LLM only processes comments with semantic value, preventing false-positive hallucination on blank or emoji-only inputs.
 *   **Hardware Optimized:** Utilizes `CUDA_DEVICE_ORDER` isolation and FlashAttention (SDPA) for high-throughput local inference (~1.7 iterations/sec on a 7B model).
+
+## 📱 Interactive SaaS Dashboard
+
+The project features a stateful Streamlit control center (`src/full_app.py`) that acts as a fully-fledged local SaaS.
+
+*   **Dynamic Scraping Engine:** Paste any Instagram URL into the UI, select post volume and comment limits, and trigger the pipeline.
+*   **On-Demand VRAM Management:** The dashboard programmatically boots the `vLLM` server exclusively during the tagging phase, generates an AI executive summary, and cleanly terminates the LLM process. This ensures 0% idle VRAM usage while the web app remains online globally.
+*   **Data Explorer:** Drill down into aspect-level complaints (e.g., `taste_quality`) directly in the browser via Plotly and Pandas.
