@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import subprocess, pathlib, os, time, sys, requests
+import subprocess, pathlib, os, time, sys, signal, requests
 from apify_client import ApifyClient
 from openai import OpenAI
 
@@ -24,6 +24,17 @@ if "posts_df" not in st.session_state: st.session_state.posts_df = None
 if "selected_posts" not in st.session_state: st.session_state.selected_posts = []
 if "pipeline_run_complete" not in st.session_state: st.session_state.pipeline_run_complete = False
 if "exec_summary" not in st.session_state: st.session_state.exec_summary = ""
+
+def kill_vllm_tree(proc=None):
+    """Forcefully nuke vLLM parent process and all orphaned CUDA workers."""
+    if proc and proc.poll() is None:
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except Exception:
+            pass
+    # Fallback cleanup for any lingering CUDA processes on GPU 0
+    subprocess.run("kill -9 $(nvidia-smi --query-compute-apps=pid --format=csv,noheader) 2>/dev/null || true", shell=True)
+    subprocess.run(["pkill", "-9", "-f", "vllm"], stderr=subprocess.DEVNULL)
 
 # --- PHASE 1: DISCOVERY ---
 st.sidebar.header("1. Target Discovery")
@@ -69,7 +80,9 @@ if st.session_state.posts_df is not None and not st.session_state.posts_df.empty
             vllm_env = os.environ.copy()
             vllm_env["CUDA_VISIBLE_DEVICES"] = "0"
             vllm_cmd = [VENV_VLLM, "serve", "Qwen/Qwen2.5-7B-Instruct", "--port", "8000", "--served-model-name", "m", "--max-model-len", "4096", "--gpu-memory-utilization", "0.85", "--quantization", "fp8", "--enforce-eager"]
-            vllm_proc = subprocess.Popen(vllm_cmd, env=vllm_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            
+            # preexec_fn=os.setsid creates a dedicated process group for vLLM and its workers
+            vllm_proc = subprocess.Popen(vllm_cmd, env=vllm_env, preexec_fn=os.setsid, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
             st.write("Waiting for model to load (~30 seconds)...")
             vllm_ready = False
@@ -78,7 +91,7 @@ if st.session_state.posts_df is not None and not st.session_state.posts_df.empty
                     if requests.get("http://localhost:8000/v1/models").status_code == 200:
                         vllm_ready = True
                         break
-                except: time.sleep(2)
+                except Exception: time.sleep(2)
             
             if vllm_ready:
                 st.write("🧠 Running local AI tagging inference...")
@@ -93,12 +106,11 @@ if st.session_state.posts_df is not None and not st.session_state.posts_df.empty
                     st.session_state.exec_summary = response.choices[0].message.content
                 except Exception as e: st.session_state.exec_summary = f"Summary failed: {e}"
                 
-                st.write("🛑 Shutting down vLLM (Freeing VRAM)...")
-                vllm_proc.terminate()
-                vllm_proc.wait()
+                st.write("🛑 Shutting down vLLM Process Tree & Freeing VRAM...")
+                kill_vllm_tree(vllm_proc)
             else:
                 st.error("vLLM Engine failed to boot!")
-                vllm_proc.terminate()
+                kill_vllm_tree(vllm_proc)
             
             status.update(label="Pipeline Complete! VRAM Freed.", state="complete", expanded=False)
         st.session_state.pipeline_run_complete = True
